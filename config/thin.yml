@@ -1,0 +1,14 @@
+---
+chdir: "/home/renich/Projects/ruby/greg"
+environment: production
+timeout: 30
+log: "/home/renich/Projects/ruby/greg/log/thin.log"
+pid: "/run/thin/myagregatorwebsite.tld.pid"
+max_conns: 1024
+max_persistent_conns: 100
+require: []
+wait: 30
+threadpool_size: 20
+daemonize: true
+socket: "/run/thin/myagregatorwebsite.tld.sock"
+threaded: true

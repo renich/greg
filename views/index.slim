@@ -1,0 +1,12 @@
+h1 RKRo
+
+- unless items.empty?
+    - items.each do |item|
+        div class = 'section details'
+            h3 a.href = item.url
+                == item.title
+            small = item.published
+            p
+                == item.content
+- else
+    p No hay noticias por lo pronto.
