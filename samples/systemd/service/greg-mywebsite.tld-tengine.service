@@ -1,0 +1,25 @@
+[Unit]
+After=network.target
+Before=tengine.service
+Description=grep: default
+Documentation=https://github.com/renich/greg/
+Requires=tengine.service
+
+# tests
+AssertPathExists=/srv/www/greg/myagregatorwebsite.tld/default
+AssertPathExists=/var/log/greg
+AssertPathExists=/run/greg
+
+[Service]
+Restart=always
+ExecStart=/usr/bin/bundler exec thin -C config/thin.yml start
+ExecStop=/usr/bin/bundler exec thin -C config/thin.yml stop
+PIDFile=/run/greg/myagregatorwebsite.tld.pid
+PrivateTmp=yes
+Type=forking
+User=greg
+WorkingDirectory=/srv/www/greg/myagregatorwebsite.tld/default
+
+[Install]
+WantedBy=multi-user.target
+Also=tengine.service
