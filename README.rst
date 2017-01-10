@@ -35,14 +35,12 @@ source code at:     /srv/www/greg/myagregatorwebsite.tld/default
 thin logs:          /var/log/greg/myagregatorwebsite.tld.log
 socket at:          /run/greg/myagregatorwebsite.tld.sock
 PID file at:        /run/greg/myagregatorwebsite.tld.pid
-webserver:          tengine (nginx fork)
 
 Also, you need:
 
 * git
 * ruby (whatever sinatra supports)
 * bundler
-* tengine/nginx
 
 User
 ----
@@ -67,14 +65,43 @@ Directories
 
     # runtime
     cat << 'EOF' > /etc/tmpfiles.d/greg.conf
-    d /run/greg 0770 greg tengine
+    d /run/greg 0770 greg nginx
     EOF
 
     systemd-tmpfiles --create
 
 systemd
 -------
-```systemd:/samples/systemd/service/greg-mywebsite.tld-tengine.service```
+.. code:: bash
+
+    cat << 'EOF' > /etc/systemd/system/greg-myagregatorwebsite.tld.service
+    [Unit]
+    After=network.target
+    Before=nginx.service
+    Description=grep: default
+    Documentation=https://github.com/renich/greg/
+    Requires=nginx.service
+
+    # tests
+    AssertPathExists=/srv/www/greg/myagregatorwebsite.tld/default
+    AssertPathExists=/var/log/greg
+    AssertPathExists=/run/greg
+
+    [Service]
+    Restart=always
+    ExecStart=/usr/bin/bundler exec thin -C config/thin.yml start
+    ExecStop=/usr/bin/bundler exec thin -C config/thin.yml stop
+    PIDFile=/run/greg/myagregatorwebsite.tld.pid
+    PrivateTmp=yes
+    Type=forking
+    User=greg
+    WorkingDirectory=/srv/www/greg/myagregatorwebsite.tld/default
+
+    [Install]
+    WantedBy=multi-user.target
+    Also=nginx.service
+
+    EOF
 
 nginx
 -----
@@ -83,7 +110,28 @@ https://github.com/renich/fedora-configs/tree/nginx/etc/nginx
 
 So, if you decide to go my way, just put it in `/etc/nginx/server.d/myagregatorwebsite.tld.conf`.
 
-```nginx:/samples/tengine/myagregatorwebsite.tld.conf```
+.. code:: nginx
+
+    upstream myagregatorwebsite.tld {
+        server unix:///run/greg/myagregatorwebsite.tld.sock;
+    }
+
+    server {
+        listen 80;
+        server_name .myagregatorwebsite.tld;
+
+        location / {
+            try_files $uri @myagregatorwebsite.tld;
+        }
+
+        location @myagregatorwebsite.tld {
+            proxy_set_header X-Forwarded-For $remote_addr;
+            proxy_pass http://myagregatorwebsite.tld;
+        }
+
+        error_log /var/log/tengine/myagregatorwebsite-error.log;
+    }
+
 
 .. note::
 
