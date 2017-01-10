@@ -19,7 +19,7 @@ For a development tryout or local deployment:
     bundle
     bundle exec thin start
 
-If you're to deploy this for production, just configure `thin` so it uses sockets and consume the socket via `nginx`. We will arange
+If you're to deploy this for production, just configure `thin` so it uses sockets and consume the socket via `tengine`. We will arange
 for systemd to do this for us.
 
 So, first things first. We configure thin for this:
@@ -65,7 +65,7 @@ Directories
 
     # runtime
     cat << 'EOF' > /etc/tmpfiles.d/greg.conf
-    d /run/greg 0770 greg nginx
+    d /run/greg 0770 greg tengine
     EOF
 
     systemd-tmpfiles --create
@@ -77,10 +77,10 @@ systemd
     cat << 'EOF' > /etc/systemd/system/greg-myagregatorwebsite.tld.service
     [Unit]
     After=network.target
-    Before=nginx.service
+    Before=tengine.service
     Description=grep: default
     Documentation=https://github.com/renich/greg/
-    Requires=nginx.service
+    Requires=tengine.service
 
     # tests
     AssertPathExists=/srv/www/greg/myagregatorwebsite.tld/default
@@ -99,12 +99,12 @@ systemd
 
     [Install]
     WantedBy=multi-user.target
-    Also=nginx.service
+    Also=tengine.service
 
     EOF
 
-nginx
------
+tengine
+-------
 Insert the following wherever possible. I have my own configuration setup here:
 https://github.com/renich/fedora-configs/tree/nginx/etc/nginx
 
@@ -195,7 +195,7 @@ Disclaimer
 This project is a piece of crap. I will try to find some time to work on it and make it respectable. At least as fast as it can be.
 Maybe, even, async!
 
-For now, it just sucks. It outlines a great way of how to deploy a Sinatra/Padrino/Hanami ruby app; with thin and nginx, though.
+For now, it just sucks. It outlines a great way of how to deploy a Sinatra/Padrino/Hanami ruby app; with thin and tengine/nginx, though.
 
 Ah!! Do what you want!
 
